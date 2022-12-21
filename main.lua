@@ -4,7 +4,7 @@ local lines_t = {}
 local brush_coords_strings = {}
 local brush_coords = {}
 local boxes = {}
-local level = { w = 15, d = 500, h = 25, name = "D:\\SteamLibrary\\steamapps\\common\\Counter-Strike Global Offensive\\sdk_content\\maps\\mixed" }
+local level = { w = 15, d = 600, h = 25, name = "D:\\dev\\lovr\\projects\\VRBat\\levels\\su" }
 
 local coins_coords_strings = {}
 local coins_coords = {}
@@ -24,7 +24,7 @@ local function split( str, delimiter )
 end
 
 local function ReadVMF()
-	local file = io.open( level.name .. "_col.vmf", "r" )
+	local file = io.open( level.name .. ".vmf", "r" )
 	for line in file:lines() do
 		lines_t[ #lines_t + 1 ] = line
 	end
@@ -39,14 +39,14 @@ local function StoreRawVMFCoords()
 			if k == "TOOLS/TOOLSNODRAW" then
 				brush_coords_strings[ #brush_coords_strings + 1 ] = lines_t[ i - 1 ]
 			end
-			if k == "vgui_world_text_panel" then
-				coins_coords_strings[ #coins_coords_strings + 1 ] = lines_t[ i + 9 ]
+			if k == "info_node#1" then
+				coins_coords_strings[ #coins_coords_strings + 1 ] = lines_t[ i + 1 ]
 			end
 			if k == "info_player_start" then
-				player_start_coords_strings[ #player_start_coords_strings + 1 ] = lines_t[ i + 3 ]
+				player_start_coords_strings[ #player_start_coords_strings + 1 ] = lines_t[ i + 1 ]
 			end
-			if k == "game_end" then
-				game_end_coords_strings[ #game_end_coords_strings + 1 ] = lines_t[ i + 1 ]
+			if k == "light" then
+				game_end_coords_strings[ #game_end_coords_strings + 1 ] = lines_t[ i + 5 ]
 			end
 		end
 	end
@@ -71,7 +71,7 @@ local function StoreRawVMFCoords()
 		local l = split( v, '"' )
 		local str = l[ #l ]
 		local crds = split( str, " " )
-		local coin = { x = tonumber( crds[ 1 ] ) / 10, y = tonumber( crds[ 3 ] ) / 10, z = tonumber( crds[ 2 ] ) / 10 }
+		local coin = { x = tonumber( crds[ 1 ] ) /39.37, y = tonumber( crds[ 3 ] ) /39.37, z = tonumber( crds[ 2 ] ) /39.37 }
 		coins_coords[ #coins_coords + 1 ] = coin
 	end
 
@@ -80,9 +80,9 @@ local function StoreRawVMFCoords()
 		local l = split( v, '"' )
 		local str = l[ #l ]
 		local crds = split( str, " " )
-		player_start_coords.x = tonumber( crds[ 1 ] ) / 10
-		player_start_coords.y = tonumber( crds[ 3 ] ) / 10
-		player_start_coords.z = tonumber( crds[ 2 ] ) / 10
+		player_start_coords.x = tonumber( crds[ 1 ] ) /39.37
+		player_start_coords.y = tonumber( crds[ 3 ] ) /39.37
+		player_start_coords.z = tonumber( crds[ 2 ] ) /39.37
 	end
 
 	-- parse game_end
@@ -90,7 +90,7 @@ local function StoreRawVMFCoords()
 		local l = split( v, '"' )
 		local str = l[ #l ]
 		local crds = split( str, " " )
-		game_end_z = tonumber( crds[ 2 ] ) / 10
+		game_end_z = tonumber( crds[ 2 ] ) /39.37
 	end
 end
 
@@ -116,7 +116,7 @@ local function StoreBoxes()
 
 		if counter == 18 then
 			counter = 0
-			boxes[ #boxes + 1 ] = { minx = minx / 10, maxx = maxx / 10, miny = miny / 10, maxy = maxy / 10, minz = -maxz / 10, maxz = -minz / 10 }
+			boxes[ #boxes + 1 ] = { minx = minx /39.37, maxx = maxx /39.37, miny = miny /39.37, maxy = maxy /39.37, minz = -maxz /39.37, maxz = -minz /39.37 }
 			minx = math.huge
 			maxx = -math.huge
 			miny = math.huge
