@@ -9,11 +9,17 @@ local level = { w = 15, d = 600, h = 25, name = "D:\\dev\\lovr\\projects\\VRBat\
 local coins_coords_strings = {}
 local coins_coords = {}
 
+local gems_coords_strings = {}
+local gems_coords = {}
+
 local player_start_coords_strings = {}
 local player_start_coords = { x = 0, y = 0, v = 0 }
 
-local game_end_coords_strings = {}
-local game_end_z = 0
+local key_coords_strings = {}
+local key_coords = { x = 0, y = 0, v = 0 }
+
+local portal_coords_strings = {}
+local portal_coords = { x = 0, y = 0, v = 0 }
 
 local function split( str, delimiter )
 	local result = {}
@@ -39,14 +45,20 @@ local function StoreRawVMFCoords()
 			if k == "TOOLS/TOOLSNODRAW" then
 				brush_coords_strings[ #brush_coords_strings + 1 ] = lines_t[ i - 1 ]
 			end
-			if k == "info_node#1" then
+			if k == "coin" then
 				coins_coords_strings[ #coins_coords_strings + 1 ] = lines_t[ i + 1 ]
+			end
+			if k == "gem" then
+				gems_coords_strings[ #gems_coords_strings + 1 ] = lines_t[ i + 1 ]
 			end
 			if k == "info_player_start" then
 				player_start_coords_strings[ #player_start_coords_strings + 1 ] = lines_t[ i + 1 ]
 			end
-			if k == "light" then
-				game_end_coords_strings[ #game_end_coords_strings + 1 ] = lines_t[ i + 5 ]
+			if k == "key" then
+				key_coords_strings[ #key_coords_strings + 1 ] = lines_t[ i + 1 ]
+			end
+			if k == "portal" then
+				portal_coords_strings[ #portal_coords_strings + 1 ] = lines_t[ i + 1 ]
 			end
 		end
 	end
@@ -71,8 +83,17 @@ local function StoreRawVMFCoords()
 		local l = split( v, '"' )
 		local str = l[ #l ]
 		local crds = split( str, " " )
-		local coin = { x = tonumber( crds[ 1 ] ) /39.37, y = tonumber( crds[ 3 ] ) /39.37, z = tonumber( crds[ 2 ] ) /39.37 }
+		local coin = { x = tonumber( crds[ 1 ] ) / 39.37, y = tonumber( crds[ 3 ] ) / 39.37, z = tonumber( crds[ 2 ] ) / 39.37 }
 		coins_coords[ #coins_coords + 1 ] = coin
+	end
+
+	-- parse actual gem coordinates
+	for i, v in ipairs( gems_coords_strings ) do
+		local l = split( v, '"' )
+		local str = l[ #l ]
+		local crds = split( str, " " )
+		local gem = { x = tonumber( crds[ 1 ] ) / 39.37, y = tonumber( crds[ 3 ] ) / 39.37, z = tonumber( crds[ 2 ] ) / 39.37 }
+		gems_coords[ #gems_coords + 1 ] = gem
 	end
 
 	-- parse player_start
@@ -80,17 +101,29 @@ local function StoreRawVMFCoords()
 		local l = split( v, '"' )
 		local str = l[ #l ]
 		local crds = split( str, " " )
-		player_start_coords.x = tonumber( crds[ 1 ] ) /39.37
-		player_start_coords.y = tonumber( crds[ 3 ] ) /39.37
-		player_start_coords.z = tonumber( crds[ 2 ] ) /39.37
+		player_start_coords.x = tonumber( crds[ 1 ] ) / 39.37
+		player_start_coords.y = tonumber( crds[ 3 ] ) / 39.37
+		player_start_coords.z = tonumber( crds[ 2 ] ) / 39.37
 	end
 
-	-- parse game_end
-	for i, v in ipairs( game_end_coords_strings ) do
+	-- parse key
+	for i, v in ipairs( key_coords_strings ) do
 		local l = split( v, '"' )
 		local str = l[ #l ]
 		local crds = split( str, " " )
-		game_end_z = tonumber( crds[ 2 ] ) /39.37
+		key_coords.x = tonumber( crds[ 1 ] ) / 39.37
+		key_coords.y = tonumber( crds[ 3 ] ) / 39.37
+		key_coords.z = tonumber( crds[ 2 ] ) / 39.37
+	end
+
+	-- parse portal
+	for i, v in ipairs( portal_coords_strings ) do
+		local l = split( v, '"' )
+		local str = l[ #l ]
+		local crds = split( str, " " )
+		portal_coords.x = tonumber( crds[ 1 ] ) / 39.37
+		portal_coords.y = tonumber( crds[ 3 ] ) / 39.37
+		portal_coords.z = tonumber( crds[ 2 ] ) / 39.37
 	end
 end
 
@@ -116,7 +149,7 @@ local function StoreBoxes()
 
 		if counter == 18 then
 			counter = 0
-			boxes[ #boxes + 1 ] = { minx = minx /39.37, maxx = maxx /39.37, miny = miny /39.37, maxy = maxy /39.37, minz = -maxz /39.37, maxz = -minz /39.37 }
+			boxes[ #boxes + 1 ] = { minx = minx / 39.37, maxx = maxx / 39.37, miny = miny / 39.37, maxy = maxy / 39.37, minz = -maxz / 39.37, maxz = -minz / 39.37 }
 			minx = math.huge
 			maxx = -math.huge
 			miny = math.huge
@@ -127,10 +160,12 @@ local function StoreBoxes()
 	end
 end
 
+-- level.w, level.d, level.h, level.name, start.x, start.y, start.z, key.x, key.y, key.z
+
 local function SaveLevel()
 	local file = io.open( level.name .. "_col.txt", "w" )
 	file:write( level.w, ",", level.d, ",", level.h, ",", level.name, ",", player_start_coords.x, ",", player_start_coords.y, ",", player_start_coords.z, ",",
-		game_end_z, "\n" )
+		key_coords.x, ",", key_coords.y, ",", -key_coords.z, ",", portal_coords.x, ",", portal_coords.y, ",", -portal_coords.z, ",", "\n" )
 	for i, v in ipairs( boxes ) do
 		file:write( v.minx, ",", v.maxx, ",", v.miny, ",", v.maxy, ",", v.minz, ",", v.maxz, "\n" )
 	end
@@ -138,6 +173,12 @@ local function SaveLevel()
 
 	local file = io.open( level.name .. "_coins.txt", "w" )
 	for i, v in ipairs( coins_coords ) do
+		file:write( v.x, ",", v.y, ",", -v.z, "\n" )
+	end
+	file:close()
+
+	local file = io.open( level.name .. "_gems.txt", "w" )
+	for i, v in ipairs( gems_coords ) do
 		file:write( v.x, ",", v.y, ",", -v.z, "\n" )
 	end
 	file:close()
